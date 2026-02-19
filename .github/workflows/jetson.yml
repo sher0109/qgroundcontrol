@@ -87,7 +87,8 @@ jobs:
 
       # ── 8. Crea AppImage ──────────────────────────────────
       - name: Create AppImage
-        run: cmake --install ${{ runner.temp }}/build --config Release
+        working-directory: ${{ runner.temp }}/build
+        run: cmake --install . --config Release
 
       # ── 9. Trova e rinomina l'AppImage ────────────────────
       - name: Rename AppImage
