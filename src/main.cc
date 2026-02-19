@@ -12,6 +12,10 @@ QGC_LOGGING_CATEGORY(MainLog, "Main")
 
 int main(int argc, char *argv[])
 {
+    // HiDPI: must be set before QApplication is constructed.
+    // Adjust the value to match your display (1.5, 2, etc.)
+    qputenv("QT_SCALE_FACTOR", "1.5");
+
     // --- Parse command line arguments ---
     const auto args = QGCCommandLineParser::parse(argc, argv);
     if (const auto exitCode = QGCCommandLineParser::handleParseResult(args)) {

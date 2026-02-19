@@ -40,7 +40,7 @@ help:
 	@echo "  Qt version: $(QT_VERSION)"
 
 # Configuration - reads from centralized config
-QT_VERSION := $(shell ./tools/setup/read-config.sh qt_version 2>/dev/null || echo "6.10.1")
+QT_VERSION := $(shell ./tools/setup/read-config.sh --get qt_version 2>/dev/null || echo "6.10.1")
 QT_DIR ?= $(HOME)/Qt/$(QT_VERSION)/gcc_64
 BUILD_TYPE ?= Debug
 BUILD_DIR := build
@@ -96,7 +96,8 @@ check: lint test
 
 # Other targets
 run:
-	./$(BUILD_DIR)/staging/QGroundControl
+	@BIN=$$(find $(BUILD_DIR)/$(BUILD_TYPE) -maxdepth 1 -type f -executable 2>/dev/null | head -1); \
+	if [ -n "$$BIN" ]; then $$BIN; else echo "Binary not found in $(BUILD_DIR)/$(BUILD_TYPE)/"; fi
 
 docs:
 	npm run docs:build

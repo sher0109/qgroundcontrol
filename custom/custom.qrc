@@ -1,0 +1,24 @@
+<RCC>
+    <!--
+        Logo override mechanism:
+        The CustomOverrideInterceptor redirects  qrc:/res/QGCLogoFull.svg
+        to  qrc:/Custom/res/QGCLogoFull.svg  if the file exists here.
+        Replace the SVG files in res/Images/ with the real SVP logo.
+    -->
+    <qresource prefix="/Custom/res">
+        <file alias="QGCLogoFull.svg">res/Images/QGCLogoFull.svg</file>
+        <file alias="QGCLogoWhite.svg">res/Images/QGCLogoWhite.svg</file>
+        <file alias="QGCLogoBlack.svg">res/Images/QGCLogoBlack.svg</file>
+    </qresource>
+
+    <!-- QML overrides: interceptor maps qrc:/qml/X -> qrc:/Custom/qml/X -->
+    <qresource prefix="/Custom/qml">
+        <file alias="QGroundControl/Controls/QGCToolBarButton.qml">src/QmlControls/QGCToolBarButton.qml</file>
+    </qresource>
+
+    <!-- Brand images used by CustomPlugin::brandImageIndoor/Outdoor -->
+    <qresource prefix="/custom/img">
+        <file alias="logo-dark.svg">res/Images/QGCLogoWhite.svg</file>
+        <file alias="logo-light.svg">res/Images/QGCLogoBlack.svg</file>
+    </qresource>
+</RCC>
