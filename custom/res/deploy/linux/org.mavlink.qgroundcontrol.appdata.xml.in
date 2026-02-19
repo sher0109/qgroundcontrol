@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>@QGC_PACKAGE_NAME@</id>
+  <name>@QGC_APP_NAME@</name>
+  <launchable type="desktop-id">@QGC_PACKAGE_NAME@.desktop</launchable>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0 OR GPL-3.0</project_license>
+  <content_rating type="oars-1.1"/>
+
+  <developer id="com.svp">
+    <name translate="no">SVP</name>
+  </developer>
+
+  <summary>@QGC_APP_DESCRIPTION@</summary>
+  <description>
+    <p>
+      SVP GCS is a Ground Control Station for ArduPilot-based UAVs,
+      built on QGroundControl for professional drone operations.
+    </p>
+  </description>
+  <icon type="stock">@QGC_APP_NAME@</icon>
+
+  <provides>
+    <binary>@QGC_APP_NAME@</binary>
+  </provides>
+
+  <releases>
+    <release version="@CMAKE_PROJECT_VERSION@" date="@QGC_APP_DATE@">
+      <description>
+        <p>SVP GCS release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <url type="homepage">https://github.com/sher0109/svp-gcs</url>
+  <url type="bugtracker">https://github.com/sher0109/svp-gcs/issues</url>
+
+  <requires>
+    <display_length>360</display_length>
+  </requires>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+    <control>gamepad</control>
+  </supports>
+
+  <categories>
+    <category>Qt</category>
+    <category>Utility</category>
+  </categories>
+
+  <keywords>
+    <keyword translate="no">mavlink</keyword>
+    <keyword translate="no">ardupilot</keyword>
+    <keyword>drone</keyword>
+    <keyword>uav</keyword>
+  </keywords>
+</component>
