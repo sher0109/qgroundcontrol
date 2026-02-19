@@ -93,10 +93,10 @@ jobs:
       # ── 9. Trova e rinomina l'AppImage ────────────────────
       - name: Rename AppImage
         run: |
-          cd ${{ runner.temp }}/build
-          APPIMAGE=$(find . -maxdepth 2 -name "*.AppImage" | head -1)
+          # The real AppImage is at build root; tools/ contains linuxdeploy/appimagetool AppImages
+          APPIMAGE=$(find ${{ runner.temp }}/build -maxdepth 1 -name "SVPGCS*.AppImage" | head -1)
           echo "AppImage trovata: $APPIMAGE"
-          cp "$APPIMAGE" SVPGCS-jetson-aarch64.AppImage
+          cp "$APPIMAGE" ${{ runner.temp }}/build/SVPGCS-jetson-aarch64.AppImage
           echo "APPIMAGE_PATH=${{ runner.temp }}/build/SVPGCS-jetson-aarch64.AppImage" >> $GITHUB_ENV
 
       # ── 10. Carica come artifact scaricabile ──────────────
