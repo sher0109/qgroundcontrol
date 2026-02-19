@@ -1,0 +1,122 @@
+name: Jetson Orin NX (aarch64)
+
+# Lancia:
+#   - Ad ogni push su master
+#   - Manualmente da GitHub → Actions → "Run workflow"
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: jetson-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build SVP GCS — aarch64
+    runs-on: ubuntu-24.04-arm      # Runner ARM64 nativo di GitHub (Jetson-compatible)
+    timeout-minutes: 120
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # ── 2. Leggi versioni da build-config.json ────────────
+      - name: Read build config
+        id: config
+        run: |
+          QT_VERSION=$(python3 -c "import json; print(json.load(open('.github/build-config.json'))['qt_version'])")
+          QT_MODULES=$(python3 -c "import json; print(json.load(open('.github/build-config.json'))['qt_modules'])")
+          echo "qt_version=$QT_VERSION"   >> $GITHUB_OUTPUT
+          echo "qt_modules=$QT_MODULES"   >> $GITHUB_OUTPUT
+
+      # ── 3. Dipendenze di sistema ──────────────────────────
+      - name: Install system dependencies
+        run: sudo python3 tools/setup/install_dependencies.py --platform debian
+
+      # ── 4. Cache Qt + CPM ─────────────────────────────────
+      - name: Cache Qt
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/Qt
+          key: qt-${{ steps.config.outputs.qt_version }}-linux_gcc_arm64
+          restore-keys: qt-${{ steps.config.outputs.qt_version }}-
+
+      - name: Cache CPM modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/build/cpm_modules
+          key: cpm-aarch64-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}
+          restore-keys: cpm-aarch64-
+
+      # ── 5. Installa Qt per aarch64 ────────────────────────
+      - name: Install Qt ${{ steps.config.outputs.qt_version }} (aarch64)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version:  ${{ steps.config.outputs.qt_version }}
+          host:     linux_arm64
+          target:   desktop
+          arch:     linux_gcc_arm64
+          dir:      ${{ runner.temp }}/Qt
+          modules:  ${{ steps.config.outputs.qt_modules }}
+          cache:    true
+
+      # ── 6. Configura CMake ────────────────────────────────
+      - name: Configure
+        run: |
+          mkdir -p ${{ runner.temp }}/build
+          $QT_ROOT_DIR/bin/qt-cmake \
+            -S ${{ github.workspace }} \
+            -B ${{ runner.temp }}/build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DQGC_BUILD_TESTING=OFF \
+            -DQGC_STABLE_BUILD=OFF
+
+      # ── 7. Compila ────────────────────────────────────────
+      - name: Build
+        run: cmake --build ${{ runner.temp }}/build --config Release --parallel
+
+      # ── 8. Crea AppImage ──────────────────────────────────
+      - name: Create AppImage
+        run: cmake --install ${{ runner.temp }}/build --config Release
+
+      # ── 9. Trova e rinomina l'AppImage ────────────────────
+      - name: Rename AppImage
+        run: |
+          cd ${{ runner.temp }}/build
+          APPIMAGE=$(find . -maxdepth 2 -name "*.AppImage" | head -1)
+          echo "AppImage trovata: $APPIMAGE"
+          cp "$APPIMAGE" SVPGCS-jetson-aarch64.AppImage
+          echo "APPIMAGE_PATH=${{ runner.temp }}/build/SVPGCS-jetson-aarch64.AppImage" >> $GITHUB_ENV
+
+      # ── 10. Carica come artifact scaricabile ──────────────
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: SVPGCS-jetson-aarch64
+          path: ${{ runner.temp }}/build/SVPGCS-jetson-aarch64.AppImage
+          retention-days: 30
+
+      # ── 11. Riepilogo ─────────────────────────────────────
+      - name: Summary
+        run: |
+          SIZE=$(du -sh "$APPIMAGE_PATH" | cut -f1)
+          echo "## SVP GCS — Jetson Orin NX Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Architettura** | aarch64 (Jetson Orin NX) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Qt** | ${{ steps.config.outputs.qt_version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Dimensione** | $SIZE |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Scarica l'AppImage dalla sezione **Artifacts** qui sopra." >> $GITHUB_STEP_SUMMARY
